@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Virtual Observation</title>
+<title>PrimaGo: Virtual Observation</title>
 <!-- © 2026 Kayla Kolff. All rights reserved. -->
 <meta name="author" content="Kayla Kolff">
 <meta name="copyright" content="© 2026 Kayla Kolff. All rights reserved.">
@@ -37,6 +37,8 @@ body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size
 header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:10px;padding-inline:16px;border-bottom:1px solid var(--line)}
 .brand{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.01em;display:flex;align-items:baseline;gap:8px}
 .brand .tape{display:inline-block;width:18px;height:8px;background:var(--tape);transform:translateY(-3px) skewX(-18deg)}
+.brand .binos{width:1.35em;height:auto;align-self:center;flex:none}
+.brand .sub{font-family:var(--mono);font-size:12px;font-weight:400;letter-spacing:0;color:var(--muted)}
 .meta{margin-left:auto;display:flex;gap:14px;font-family:var(--mono);font-size:12px;color:var(--muted);flex-wrap:wrap}
 .meta b{color:var(--ink);font-weight:600}
 .main{display:grid;grid-template-columns:1fr 390px;min-height:0}
@@ -169,11 +171,11 @@ summary::-webkit-details-marker{display:none}
 
 <div class="app">
   <header>
-    <div class="brand"><span class="tape" aria-hidden="true"></span>Virtual observation</div>
+    <div class="brand"><svg class="binos" viewBox="0 0 28 24" aria-hidden="true"><g fill="currentColor"><rect x="4.2" y="1.5" width="6" height="4.2" rx="1.3"/><rect x="17.8" y="1.5" width="6" height="4.2" rx="1.3"/><path d="M3.6 6.2 H10.8 L13.2 15.5 H1.2 Z"/><path d="M17.2 6.2 H24.4 L26.8 15.5 H14.8 Z"/><rect x="10.6" y="7.6" width="6.8" height="5.4" rx="1.6"/><circle cx="7.2" cy="16.2" r="6.3"/><circle cx="20.8" cy="16.2" r="6.3"/></g><circle cx="7.2" cy="16.2" r="3.9" fill="#9CC3C9"/><circle cx="20.8" cy="16.2" r="3.9" fill="#9CC3C9"/><path d="M4.9 15.2 A2.6 2.6 0 0 1 7.4 13.5" stroke="#fff" stroke-width="1" fill="none" stroke-linecap="round" opacity=".9"/><path d="M18.5 15.2 A2.6 2.6 0 0 1 21 13.5" stroke="#fff" stroke-width="1" fill="none" stroke-linecap="round" opacity=".9"/></svg>PrimaGo</div>
     <div class="meta">
       <span>Observer <b>OBS-01</b></span>
       <span>Grid <b id="gridref">—</b></span>
-      <span>Ethogram <b id="ethoCount">0 / 19</b></span>
+      <span>Ethogram <b id="ethoCount">0 / 16</b></span>
       <span>Score <b id="scoreVal">0</b></span>
       <span><button class="helpbtn" id="helpBtn">How to play</button></span>
     </div>
@@ -210,9 +212,9 @@ const SPECIES = {
       {code:"GRM",name:"Allogrooming",def:"Uses fingers or lips to part and clean another individual's hair.",
        cue:["Two adults sit close together at the base of a fig tree.","One parts the other's hair with its fingers and picks at the skin, bringing something to its lips.","The receiver lies still, eyes half-closed, one arm raised."],
        note:"Grooming builds and repairs social bonds. In some communities pairs clasp hands overhead while grooming, a habit that differs from group to group."},
-      {code:"RST",name:"Resting (sitting)",def:"Stationary, seated or lying; not feeding, travelling or interacting.",
-       cue:["An adult sits with its back against a buttress root.","Its arms rest on its knees; it isn't eating or handling anything.","Now and then it looks around, then settles again."],
-       note:"Resting fills a large share of a wild chimpanzee's day, especially in the midday heat. Logging it is essential for activity budgets."},
+      {code:"INS",name:"Wound insect application",def:"Catches an insect and presses it onto an open wound, its own or another individual's.",
+       cue:["An adult female inspects a fresh wound on her adolescent son's foot.","She snatches a small flying insect from under a leaf and squeezes it between her lips.","She presses it onto the wound, moves it around with her fingertips, then picks it off again."],
+       note:"First described in the Rekambo community in Loango National Park, Gabon. Chimpanzees there apply insects to their own wounds and to those of others. Whether the insects help healing isn't known yet."},
       {code:"TLU",name:"Tool use: termite fishing",def:"Inserts a prepared stem or grass blade into a termite mound to extract insects.",
        cue:["A female crouches beside a termite mound.","She strips the leaves off a thin stem, then pushes it into a hole in the mound.","She draws it out slowly and eats what clings to it."],
        note:"The stem is modified before use, so this counts as tool making as well as tool use."},
@@ -227,15 +229,12 @@ const SPECIES = {
       {code:"FSH",name:"Food sharing",def:"Food passes from one individual to another, tolerated by the holder.",
        cue:["An adult female holds a large fruit.","Another bonobo sits facing her, one hand held out, palm up.","She lets it take a piece and carries on eating."],
        note:"Bonobos are unusually tolerant around food; experiments have found they will even share with unfamiliar bonobos."},
-      {code:"GRM",name:"Allogrooming",def:"Uses fingers or lips to part and clean another individual's hair.",
-       cue:["Three bonobos lie together on a fallen trunk.","One combs through another's back hair with its fingers, picking and lip-smacking.","The groomed individual shifts to offer its shoulder."],
-       note:"Female bonobos form strong grooming bonds, which underpin their collective influence over males."},
+      {code:"SGR",name:"Self-grooming",def:"Uses its own fingers or lips to part and clean its own hair.",
+       cue:["An adult sits alone on a fallen trunk.","It parts the hair on its forearm with its fingers and picks at the skin, bringing something to its lips.","It moves on to its leg, working slowly through the hair."],
+       note:"Self-grooming keeps the coat free of dirt and parasites. Only one individual is involved, so it is coded as a maintenance behaviour, separate from social grooming."},
       {code:"PLY",name:"Social play",def:"Chasing, wrestling or tickling with a relaxed play face; no injury.",
        cue:["Two juveniles chase each other around a tree trunk.","They tumble and wrestle, mouths open wide, lower teeth showing.","You hear rhythmic panting, like breathless laughter."],
        note:"The open-mouth play face and panting laughter signal that rough contact isn't aggression. Adult bonobos keep playing far more than most apes."},
-      {code:"BIP",name:"Bipedal carrying",def:"Walks upright on the hind limbs, usually while carrying objects.",
-       cue:["An adult steps into a clearing on two legs.","Both arms are full of stems pulled from a swampy patch.","It walks several metres upright before dropping onto all fours."],
-       note:"Apes walk on two legs most often when their hands are full, an observation used in thinking about the origins of human bipedalism."},
       {code:"NST",name:"Nest building",def:"Bends and weaves branches into a sleeping platform.",
        cue:["Late afternoon: an adult climbs into a tree fork.","It bends branches inward, pressing and weaving them under its feet.","It lies down on the platform and tucks a few leafy twigs under its head."],
        note:"Great apes build a fresh nest almost every night, so nest counts are a standard way to survey populations."}
@@ -244,9 +243,9 @@ const SPECIES = {
     marks:"Tiny; white ear tufts, white blaze on the forehead, amber eyes, grey-white-brown banded coat and ringed tail.",
     habitat:"Forest",
     behs:[
-      {code:"GUG",name:"Tree gouging",def:"Bites into bark with the lower incisors to make gum flow.",
-       cue:["A small primate clings vertically to a trunk, tail hanging down.","It anchors its upper teeth and scrapes hard into the bark with its lower teeth.","The trunk around it is pocked with small oval holes, some glistening."],
-       note:"Chisel-like lower incisors let marmosets feed on tree gum, a food few other primates can reach."},
+      {code:"GUM",name:"Gummivory",def:"Feeds on tree gum, gouging the bark with the lower incisors to make it flow.",
+       cue:["A small primate clings vertically to a trunk, tail hanging down.","It anchors its upper teeth and scrapes hard into the bark with its lower teeth.","It licks up the gum oozing from the hole. The trunk around it is pocked with small oval holes."],
+       note:"Gummivory means feeding on tree gum. Chisel-like lower incisors let marmosets gouge bark to make the gum flow, a food few other primates can reach."},
       {code:"SCM",name:"Scent marking",def:"Rubs anogenital or chest glands against a surface.",
        cue:["A marmoset walks along a branch, then presses its rear down against the bark.","It drags itself forward a short way, leaving a damp trace.","It moves on and repeats this on the next branch."],
        note:"Scent marks carry information about identity and reproductive state, and cluster where the group spends most time."},
@@ -255,10 +254,7 @@ const SPECIES = {
        note:"Marmosets usually have twins, and fathers and older siblings do much of the carrying. This is cooperative breeding."},
       {code:"PHE",name:"Phee call",def:"Long, tonal, whistle-like contact call.",
        cue:["A marmoset sits still on a branch, looking around.","It gives a long, high whistle, then repeats it.","From out of sight, another marmoset answers in the same tone."],
-       note:"Marmosets take turns in phee exchanges, waiting for a reply before calling again."},
-      {code:"GRM",name:"Allogrooming",def:"Picks through another individual's fur with hands or teeth.",
-       cue:["Two marmosets sit pressed together on a horizontal branch.","One picks through the other's fur with its hands and teeth.","After a while they swap roles."],
-       note:"Marmoset grooming is often returned within the same bout."}
+       note:"Marmosets take turns in phee exchanges, waiting for a reply before calling again."}
     ]},
   CA:{name:"Sooty mangabey",sci:"Cercocebus atys",fill:"#6FC3B8",bg:"#CBE7E2",text:"#0E2522",zones:["north"],
     marks:"Uniform smoky grey coat, dark grey face with a short muzzle and conspicuous pale eyelids.",
@@ -267,18 +263,15 @@ const SPECIES = {
       {code:"FGR",name:"Ground foraging",def:"Searches leaf litter or soil for food while moving slowly.",
        cue:["A group moves slowly across the forest floor.","One turns over leaves and sticks with its hands, checking beneath each.","Its tail is held up and curled forward over its back."],
        note:"Sooty mangabeys spend much of their day on the ground, more than most forest monkeys."},
-      {code:"NUT",name:"Nut cracking (teeth)",def:"Breaks hard-shelled nuts with the molars.",
-       cue:["A mangabey picks up a hard, wrinkled nut from the ground.","It shifts it to the back of its mouth and bites down, straining.","With a loud crack the shell splits, and it picks out the seed."],
-       note:"Sooty mangabeys crack nuts with their teeth that chimpanzees in the same forests open with stone hammers."},
       {code:"LPS",name:"Lip-smacking",def:"Rapid opening and closing of the lips toward another individual.",
        cue:["A young mangabey approaches an adult female.","It faces her and rapidly opens and closes its lips, making soft smacking sounds.","She relaxes and lets it sit beside her."],
        note:"Lip-smacking is a friendly signal that often comes before grooming; its rhythm resembles human speech."},
       {code:"EYL",name:"Eyelid flash",def:"Raises the brows to show pale eyelids at another individual.",
        cue:["Two adults stand a few metres apart over a patch of fallen fruit.","One stares at the other and raises its brows, flashing pale white eyelids.","The other backs off and moves away."],
        note:"The white eyelids make this threat easy to see in dim forest light."},
-      {code:"GRM",name:"Allogrooming",def:"Parts and cleans another individual's fur with the hands.",
-       cue:["An adult lies on its side on a low log.","Another sits behind it, parting the fur along its back with both hands.","It picks at the skin and eats small particles."],
-       note:"In many monkey groups, grooming is directed up the hierarchy more often than down."}
+      {code:"AGG",name:"Aggression",def:"Lunges at, chases, hits or bites another individual.",
+       cue:["Two adults feed close together on fallen fruit.","One suddenly lunges at the other and chases it for several metres, grabbing at its tail.","The chased animal screams and runs off; the chaser returns to the fruit."],
+       note:"Most aggression in mangabey groups is brief, a lunge or chase over food or space, and rarely causes injury. Recording who chases whom reveals the dominance hierarchy."}
     ]}
 };
 const SP_KEYS = Object.keys(SPECIES);
@@ -388,6 +381,7 @@ const portraitHTML=(sp,cls)=>`<div class="portrait ${cls||""}" role="img" aria-l
 
 /* ---------- World ---------- */
 const W=2400, H=1600;
+const PAD=80, APAD=100; // how far inside the reserve boundary you (PAD) and the animals (APAD) stay
 let seed = 20260923;
 function rnd(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }
 const R=(a,b)=>a+rnd()*(b-a);
@@ -432,6 +426,9 @@ const off = document.createElement("canvas"); off.width=W; off.height=H;
   trail([[1200,0],[1180,300],[1220,600],[1190,820],[1230,1100],[1200,1600]]);
   trail([[700,440],[640,700],[720,1000],[700,1260]]);
   c.setLineDash([]);
+  // deeper forest shadow along the reserve boundary
+  const EDGE=110, shade=(x0,y0,x1,y1,rx,ry,rw,rh)=>{ const g=c.createLinearGradient(x0,y0,x1,y1); g.addColorStop(0,"rgba(8,18,10,.62)"); g.addColorStop(.5,"rgba(8,18,10,.22)"); g.addColorStop(1,"rgba(8,18,10,0)"); c.fillStyle=g; c.fillRect(rx,ry,rw,rh); };
+  shade(0,0,EDGE,0, 0,0,EDGE,H); shade(W,0,W-EDGE,0, W-EDGE,0,EDGE,H); shade(0,0,0,EDGE, 0,0,W,EDGE); shade(0,H,0,H-EDGE, 0,H-EDGE,W,EDGE);
 })();
 
 /* ---------- Behaviour scenes ---------- */
@@ -499,9 +496,6 @@ let log = [];
 let learned = {}; SP_KEYS.forEach(k=>learned[k]=new Set());
 let scanUntil=0, scanReadyAt=0;
 const FLEE=27; // your dot touching the animal marker
-let fieldDay=1;
-try{ const d=JSON.parse(localStorage.getItem("transect-day")||"null"); if(d){ fieldDay=d.day||1; } }catch(e){}
-function saveDay(){ try{ localStorage.setItem("transect-day",JSON.stringify({day:fieldDay})); }catch(e){} }
 let toastT=0;
 function toast(msg,ms){ const t=document.getElementById("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{t.hidden=true;},ms||4200); }
 let obs=null; // {g, stage, shown, options, choice}
@@ -512,7 +506,7 @@ function save(){ try{ localStorage.setItem("transect-log", JSON.stringify({log})
 let idN=1;
 function makeGroup(sp, near){
   const S=SPECIES[sp]; let x,y,tries=0;
-  do { x=R(40,W-40); y=R(40,H-40); tries++; }
+  do { x=R(APAD,W-APAD); y=R(APAD,H-APAD); tries++; }
   while(tries<500 && (!S.zones.includes(zoneAt(x,y)) || (!near && Math.hypot(x-player.x,y-player.y)<380)));
   if(near){ x=near.x; y=near.y; }
   const bi = Math.floor(rnd()*S.behs.length), b=S.behs[bi];
@@ -542,7 +536,7 @@ try{ const d=JSON.parse(localStorage.getItem("transect-safety")||"null"); if(d){
 function saveSafety(){ try{ localStorage.setItem("transect-safety",JSON.stringify({incidents})); }catch(e){} }
 function makeHazard(kind){
   const Z=HAZ[kind]; let x,y,t=0;
-  do{ x=R(40,W-40); y=R(40,H-40); t++; } while(t<500 && (!Z.zones.includes(zoneAt(x,y)) || Math.hypot(x-player.x,y-player.y)<320 || groups.some(g=>Math.hypot(g.x-x,g.y-y)<60)));
+  do{ x=R(APAD,W-APAD); y=R(APAD,H-APAD); t++; } while(t<500 && (!Z.zones.includes(zoneAt(x,y)) || Math.hypot(x-player.x,y-player.y)<320 || groups.some(g=>Math.hypot(g.x-x,g.y-y)<60)));
   const a=R(0,6.28), o={id:idN++, haz:kind, x, y, vx:Math.cos(a)*Z.speed, vy:Math.sin(a)*Z.speed, cool:0};
   return o;
 }
@@ -558,10 +552,10 @@ function incident(h,now){
   obs=null; keys={}; player.dest=null;
   flash(); sendToCamp(h.haz);
 }
-/* ---------- Back to camp: 5-minute time-out after a safety incident ---------- */
-const CAMP={x:1210,y:560}, CAMP_MS=5*60*1000;
+/* ---------- Back to camp: 2-minute time-out after a safety incident ---------- */
+const CAMP={x:1210,y:560}, CAMP_MS=2*60*1000;
 let camp=null; // {until, k}
-try{ const c=JSON.parse(localStorage.getItem("transect-camp")||"null"); if(c && c.until>Date.now() && HAZ[c.k]) camp=c; }catch(e){}
+try{ const c=JSON.parse(localStorage.getItem("transect-camp")||"null"); if(c && c.until>Date.now() && HAZ[c.k]){ c.until=Math.min(c.until,Date.now()+CAMP_MS); camp=c; } }catch(e){}
 const inCamp=()=>!!camp;
 function sendToCamp(k){
   camp={until:Date.now()+CAMP_MS, k}; try{ localStorage.setItem("transect-camp",JSON.stringify(camp)); }catch(e){}
@@ -582,7 +576,8 @@ function tickCamp(){ if(!camp) return; const left=camp.until-Date.now(), t=docum
   if(go.hidden){ sub.textContent="It's safe now."; go.hidden=false; go.focus(); } }
 function leaveCamp(){ camp=null; try{ localStorage.removeItem("transect-camp"); }catch(e){}
   const box=document.getElementById("camp"); box.hidden=true; box.innerHTML=""; document.querySelector(".app").inert=false;
-  player.x=CAMP.x; player.y=CAMP.y; lastField=""; renderPane(); toast("Back in the field. Keep outside the red circles this time.",4000); }
+  player.x=CAMP.x; player.y=CAMP.y; lastField=""; renderPane(); toast("Back in the field. Keep outside the red circles this time.",4000);
+  if(!tutShown) setTimeout(tutOpen,600); }
 function flash(){ const f=document.getElementById("dangerFlash"); if(!f) return; f.hidden=false; f.style.animation="none"; void f.offsetWidth; f.style.animation=""; setTimeout(()=>{f.hidden=true;},900); }
 
 /* ---------- Canvas ---------- */
@@ -599,6 +594,8 @@ function levelOf(g){ const d=Math.hypot(g.x-player.x,g.y-player.y);
   if(performance.now()<scanUntil && d<SCAN) return 2;
   if(d<DETECT) return 1; return 0; }
 
+// keep the view inside the reserve so the empty area beyond the map never shows
+function clampCam(){ cam.x = cw>=W ? W/2 : Math.max(cw/2,Math.min(W-cw/2,cam.x)); cam.y = ch>=H ? H/2 : Math.max(ch/2,Math.min(H-ch/2,cam.y)); }
 function toScreen(x,y){ return [x-cam.x+cw/2, y-cam.y+ch/2]; }
 cv.addEventListener("pointerdown", e=>{
   if(obs||inCamp()) return;
@@ -610,7 +607,7 @@ cv.addEventListener("pointerdown", e=>{
       if(L===3){ startObs(g); return; }
       const dx=g.x-player.x, dy=g.y-player.y, d=Math.hypot(dx,dy), stop=RANGE-8;
       wx=d>stop? g.x-dx/d*stop : player.x; wy=d>stop? g.y-dy/d*stop : player.y; break; } } }
-  player.dest={x:Math.max(10,Math.min(W-10,wx)), y:Math.max(10,Math.min(H-10,wy))};
+  player.dest={x:Math.max(PAD,Math.min(W-PAD,wx)), y:Math.max(PAD,Math.min(H-PAD,wy))};
 });
 addEventListener("keydown",e=>{ if(tutEls||inCamp()) return; const k=e.key.toLowerCase(); if(["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d"].includes(k)){ if(e.target.tagName!=="INPUT"){ keys[k]=true; e.preventDefault(); } } });
 addEventListener("keyup",e=>{ keys[e.key.toLowerCase()]=false; });
@@ -633,7 +630,7 @@ function step(now){
     else if(player.dest){ const dx=player.dest.x-player.x, dy=player.dest.y-player.y, d=Math.hypot(dx,dy);
       if(d<3) player.dest=null; else { mx=dx/d; my=dy/d; } }
     if(mx||my){ const n=Math.hypot(mx,my); const sp=(zoneAt(player.x,player.y)==="river"?38:95)*dt;
-      player.x=Math.max(10,Math.min(W-10,player.x+mx/n*sp)); player.y=Math.max(10,Math.min(H-10,player.y+my/n*sp));
+      player.x=Math.max(PAD,Math.min(W-PAD,player.x+mx/n*sp)); player.y=Math.max(PAD,Math.min(H-PAD,player.y+my/n*sp));
       player.heading=Math.atan2(my,mx); }
   }
   // animals wander within their zones
@@ -649,15 +646,15 @@ function step(now){
     if(!(g.wary && now<g.wary) && dist<RANGE+15) continue; // animals settle while you watch them
     if(!(g.wary && now<g.wary) && rnd()<.01){ const a=R(0,6.28), s=R(3,10); g.vx=Math.cos(a)*s; g.vy=Math.sin(a)*s; }
     const nx=g.x+g.vx*dt, ny=g.y+g.vy*dt;
-    if(SPECIES[g.sp].zones.includes(zoneAt(nx,ny)) && nx>20&&nx<W-20&&ny>20&&ny<H-20){ g.x=nx; g.y=ny; } else { g.vx*=-1; g.vy*=-1; }
+    if(SPECIES[g.sp].zones.includes(zoneAt(nx,ny)) && nx>APAD&&nx<W-APAD&&ny>APAD&&ny<H-APAD){ g.x=nx; g.y=ny; } else { g.vx*=-1; g.vy*=-1; }
   }
   for(const h of hazards){ const Z=HAZ[h.haz], dist=Math.hypot(h.x-player.x,h.y-player.y);
     if(!obs && !tutEls && !inCamp() && now>h.cool && dist<Z.danger){ incident(h,now); continue; }
     if(!Z.speed) continue;
     if(rnd()<.008){ const a=R(0,6.28), sp=R(.5,1)*Z.speed; h.vx=Math.cos(a)*sp; h.vy=Math.sin(a)*sp; }
     const nx=h.x+h.vx*dt, ny=h.y+h.vy*dt;
-    if(Z.zones.includes(zoneAt(nx,ny)) && nx>20&&nx<W-20&&ny>20&&ny<H-20){ h.x=nx; h.y=ny; } else { h.vx*=-1; h.vy*=-1; } }
-  cam.x+= (player.x-cam.x)*Math.min(1,dt*6); cam.y+=(player.y-cam.y)*Math.min(1,dt*6);
+    if(Z.zones.includes(zoneAt(nx,ny)) && nx>APAD&&nx<W-APAD&&ny>APAD&&ny<H-APAD){ h.x=nx; h.y=ny; } else { h.vx*=-1; h.vy*=-1; } }
+  cam.x+= (player.x-cam.x)*Math.min(1,dt*6); cam.y+=(player.y-cam.y)*Math.min(1,dt*6); clampCam();
   draw(now);
   requestAnimationFrame(step);
 }
@@ -767,7 +764,7 @@ function fieldHTML(){
   const done=log.length;
   return `<div class="stack">${warnHTML}
     <div style="display:flex;gap:14px;align-items:flex-start">${L===2?portraitHTML(g.sp,"m"):""}<div><div class="eyebrow">Walking transect · ${esc(ZONE_NAME[zoneAt(player.x,player.y)])}</div><h2>${lead}</h2><p class="muted" style="margin:0">${sub}</p></div></div>
-    <div class="note small"><b>How it works.</b> Signs appear inside your dashed detection ring. Get within about 40 m, but don't walk right into them or they'll move off. Then run a focal sample: watch the individual, then code its behaviour against the ethogram. Correct codes fill in your ethogram; wrong ones are corrected and still logged. <b>Stay away from elephants and snakes</b>: if you walk inside their red circles, you'll be sent back to camp for 5 minutes.</div>
+    <div class="note small"><b>How it works.</b> Signs appear inside your dashed detection ring. Get within about 40 m, but don't walk right into them or they'll move off. Then run a focal sample: watch the individual, then code its behaviour against the ethogram. Correct codes fill in your ethogram; wrong ones are corrected and still logged. <b>Stay away from elephants and snakes</b>: if you walk inside their red circles, you'll be sent back to camp for 2 minutes.</div>
     <div><div class="eyebrow" style="margin-bottom:8px">Study species</div><div class="prog">${SP_KEYS.map(k=>`<div class="progrow">${badge(k,"s")}<div><b>${SPECIES[k].name}</b></div></div>`).join("")}</div></div>
     <p class="muted small">${done ? `${done} observation${done>1?"s":""} in the notebook.` : "No observations logged yet."} Species from different continents share this training reserve so you can practise all four in one walk.</p>
     <p class="copy">© 2026 Kayla Kolff. All rights reserved.</p>
@@ -827,12 +824,11 @@ function notesHTML(){
     : `<div class="empty">Your notebook is empty. Walk toward a sign on the map and run your first focal sample.</div>`;
   const st=stats();
   return `<div class="stack">
-    <div><div class="eyebrow">Field day ${fieldDay}</div><h2>Your progress</h2></div>
+    <div><div class="eyebrow">Notebook</div><h2>Your progress</h2></div>
     <div class="stats"><div class="stat"><b>${st.score}</b>Score</div><div class="stat"><b>${st.n?st.acc+"%":"–"}</b>Accuracy</div><div class="stat"><b>${st.best}</b>Best streak</div><div class="stat"><b>${st.inc}</b>Safety incidents</div></div>
     <div><div class="eyebrow" style="margin-bottom:6px">Badges</div>${badgesHTML()}</div>
     <div><div class="eyebrow">Ethogram coverage</div><h3 style="margin:4px 0 8px">${n} of ${TOTAL_BEHS} behaviours confirmed</h3></div>${prog}
     <div><div class="eyebrow" style="margin-bottom:4px">Observation log</div>${rows}</div>
-    <button class="btn" id="newDay">Start a new field day</button>
     ${log.length?`<button class="btn ghost" id="clearLog">Clear notebook</button><div id="clearConfirm" hidden><p class="small">Delete all ${log.length} entries from this browser?</p><div style="display:flex;gap:8px"><button class="btn" id="clearYes">Delete entries</button><button class="btn ghost" id="clearNo">Keep them</button></div></div>`:""}</div>`;
 }
 
@@ -868,7 +864,6 @@ pane.addEventListener("click",e=>{
   else if(t.classList.contains("opt") && obs && obs.stage==="choose"){ obs.choice=+t.dataset.i; obs.stage="result"; renderPane(); }
   else if(t.id==="logBtn") finishObs();
   else if(t.id==="stopObs"){ obs=null; lastField=""; renderPane(); toast("Sample stopped. Nothing was logged."); }
-  else if(t.id==="newDay"){ fieldDay++; saveDay(); spawnHazards(); groups=[]; SP_KEYS.forEach(sp=>{ for(let i=0;i<4;i++) groups.push(makeGroup(sp)); }); lastField=""; renderPane(); toast(`Field day ${fieldDay}. The animals have moved to new spots.`); }
   else if(t.id==="clearLog"){ document.getElementById("clearConfirm").hidden=false; t.hidden=true; }
   else if(t.id==="clearNo"){ lastField=""; renderPane(); }
   else if(t.id==="clearYes"){ log=[]; SP_KEYS.forEach(k=>learned[k]=new Set()); save(); lastField=""; renderPane(); }
@@ -909,21 +904,21 @@ setInterval(()=>{ document.getElementById("gridref").textContent=gridRef(player.
 
 /* ---------- Tutorial ---------- */
 const TUT=[
-  {t:"Welcome, field researcher", b:"You're on a training reserve with four primate species. Your job: find them, watch what they do, and record their behaviour like a real primatologist. This takes about a minute.", at:null},
+  {t:"Welcome to PrimaGo", b:"You're a field researcher on a training reserve with four primate species. Your job: find them, watch what they do, and record their behaviour like a real primatologist. This takes about a minute.", at:null},
   {t:"This is you", b:"The orange dot in the middle of the map is you, and the arrow shows which way you're facing. Tap anywhere on the map to walk there, or use the arrow keys.", at:()=>mapSpot(26)},
   {t:"Listen for signs", b:"The dashed ring is how far you can hear. When an animal is inside it, a pulsing ? appears where something is rustling. The Field panel also tells you which direction to head.", at:()=>mapSpot(122)},
   {t:"Use your binoculars", b:"Scanning identifies animals much further away, so you know what's there before you walk over.", at:()=>el("scanBtn")},
   {t:"Approach carefully", b:"Once you're within about 40 m, an orange ring appears around the animal. Don't walk right into it, or it will move off. Tapping an animal walks you to a safe distance automatically.", at:()=>mapSpot(80)},
-  {t:"Watch out for danger", b:"Elephants and venomous snakes live here too. They're marked with a red circle: never walk inside it, or you'll be sent back to camp and have to wait 5 minutes before going out again. Snakes only show up when you're close, so keep an eye on the Field panel.", at:null},
+  {t:"Watch out for danger", b:"Elephants and venomous snakes live here too. They're marked with a red circle: never walk inside it, or you'll be sent back to camp, lose 15 points and have to wait 2 minutes before going out again. Snakes only show up when you're close, so keep an eye on the Field panel.", at:null},
   {t:"Run a focal sample", b:"Tap the animal, or press Begin focal sample in this panel. Watch closely: what it does appears here, line by line, while the timer runs.", at:()=>el("pane")},
   {t:"Code the behaviour", b:"When the sample ends, pick the ethogram code that matches what you saw. Unsure? The Ethogram tab lists every behaviour with its definition.", at:()=>el("tab-guide")},
-  {t:"Track your progress", b:"The Notebook keeps every observation, your score, accuracy and badges. Start a new field day there to send the animals to new spots.", at:()=>el("tab-notes")},
+  {t:"Track your progress", b:"The Notebook keeps every observation, your score, accuracy and badges.", at:()=>el("tab-notes")},
 ];
 let tutI=-1, tutEls=null;
 function el(id){ return document.getElementById(id); }
-function mapSpot(r){ const b=el("mapwrap").getBoundingClientRect(); const cx=b.left+b.width/2, cy=b.top+b.height/2; return {rect:{left:cx-r,top:cy-r,width:r*2,height:r*2}, round:true}; }
+function mapSpot(r){ const b=el("mapwrap").getBoundingClientRect(); clampCam(); const [sx,sy]=toScreen(player.x,player.y); const cx=b.left+sx, cy=b.top+sy; return {rect:{left:cx-r,top:cy-r,width:r*2,height:r*2}, round:true}; }
 function tutOpen(){
-  if(tutEls) return;
+  if(tutEls) return; tutShown=true;
   const block=document.createElement("div"); block.className="tut-block";
   const hole=document.createElement("div"); hole.className="tut-hole";
   const card=document.createElement("div"); card.className="tut-card"; card.setAttribute("role","dialog"); card.setAttribute("aria-modal","true"); card.setAttribute("aria-labelledby","tutTitle");
@@ -936,7 +931,7 @@ function tutOpen(){
 function tutKey(e){ if(!tutEls) return; if(e.key==="Escape") tutClose(); else if(e.key==="ArrowRight"){ e.preventDefault(); e.stopPropagation(); tutGo(tutI+1);} else if(e.key==="ArrowLeft"){ e.preventDefault(); e.stopPropagation(); tutGo(tutI-1);} }
 function tutClose(){ if(!tutEls) return; Object.values(tutEls).forEach(n=>n.remove()); tutEls=null; tutI=-1;
   removeEventListener("keydown",tutKey); removeEventListener("resize",tutPlace);
-  try{ localStorage.setItem("transect-tutorial","done"); }catch(e){} keys={}; el("helpBtn").focus(); }
+  keys={}; el("helpBtn").focus(); }
 function tutGo(i){
   if(i<0) return; if(i>=TUT.length){ tutClose(); return; }
   tutI=i; const st=TUT[i], last=i===TUT.length-1;
@@ -965,12 +960,12 @@ function tutPlace(){
   card.style.left=Math.max(M,Math.min(vw-cw-M,x))+"px"; card.style.top=Math.max(M,Math.min(vh-chh-M,y))+"px";
 }
 el("helpBtn").addEventListener("click",tutOpen);
-let tutSeen=false; try{ tutSeen=localStorage.getItem("transect-tutorial")==="done"; }catch(e){}
+let tutShown=false; // the tutorial opens every time the page is opened
 
 renderPane();
 requestAnimationFrame(step);
 if(camp){ player.x=CAMP.x; player.y=CAMP.y; cam.x=CAMP.x; cam.y=CAMP.y; showCamp(); }
-else if(!tutSeen) setTimeout(tutOpen,400);
+else setTimeout(tutOpen,400);
 })();
 </script>
 
