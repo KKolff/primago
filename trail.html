@@ -231,6 +231,8 @@ html,body{height:auto;min-height:100%}
 .fld textarea{font:inherit;font-size:15px;font-weight:400;padding:9px 10px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);min-width:0}
 .fld textarea{font:inherit;font-size:15px;padding:9px 10px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);font-weight:400}
 .tv-pt{display:grid;grid-template-columns:auto minmax(170px,1fr) auto;gap:10px;align-items:center}
+.gpsco{font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums;margin-top:4px}
+.gpsco span{user-select:all}
 .howto{margin:8px 0 0;padding-left:20px;display:grid;gap:3px;color:var(--muted)}
 .tv-pt input.coord{font-family:var(--mono);font-size:13px}
 .tv-pt input.coord.bad{border-color:var(--bad);box-shadow:inset 0 0 0 1px var(--bad)}
@@ -550,7 +552,7 @@ function trailHTML(){
     let where=`<p class="muted small" style="margin:0">Turn on GPS guidance to see how far away it is.</p>`;
     if(geo){ const d=gpsDist(geo,next), b=gpsBearing(geo,next);
       where=`<div class="gpsbig"><span class="arrow" style="transform:rotate(${Math.round(b)}deg)" aria-hidden="true">↑</span><div><b>${fmtDist(d)}</b> to the ${DIRS[Math.round(b/45)%8]}<br><span class="muted small">GPS accuracy about ${Math.round(geo.acc)} m${d<25?" · you're there! Look for the QR code":""}</span></div></div>`; }
-    nextCard=`<div class="plate" style="grid-template-columns:1fr"><div><div class="eyebrow">Next GPS point · ${stops.length} in total</div><h3>Spotting ${ni+1}</h3></div></div>
+    nextCard=`<div class="plate" style="grid-template-columns:1fr"><div><div class="eyebrow">Next GPS point · ${stops.length} in total</div><h3>Spotting ${ni+1}</h3><div class="gpsco">GPS <span>${coordText(next)}</span></div></div></div>
       ${where}
       ${geoWatch===null?`<button class="btn" id="gpsStart" style="align-self:flex-start">Start GPS guidance</button>`:""}
       ${geoMsg?`<p class="small" style="margin:0;color:var(--bad)">${esc(geoMsg)}</p>`:""}
@@ -558,14 +560,14 @@ function trailHTML(){
   } else nextCard=`<div class="note"><b>Trail complete!</b> You've logged all ${stops.length} spottings. See your score in the My results tab.</div>`;
   return `<div class="stack">${prev}
     <div><h2>${done} of ${stops.length} spottings logged</h2>
-    <ol class="howto small"><li>Walk to the GPS point.</li><li>Find the QR code there.</li><li>Scan it and watch the video.</li><li>Record the species and, if it is a primate, the behaviour you observe.</li></ol></div>
+    <ol class="howto small"><li>Walk to the GPS point shown below.</li><li>Find the QR code there.</li><li>Scan it and watch the video.</li><li>Record the species and, if it is a primate, the behaviour you observe.</li></ol></div>
     ${nextCard}
     <div><div class="eyebrow" style="margin-bottom:4px">All spottings</div><div class="entries">${stops.map((s,k)=>{ const r=logged[keyOf(s)], fin=isDone(r);
-      return `<button class="entry rowbtn" data-open="${k}" style="grid-template-columns:${r?"30px ":""}1fr auto;align-items:center">${r?portraitHTML(r.sp,"s"):""}<div><div class="what">Spotting ${k+1}</div><div class="sub">${r?`${esc(spLabel(r))}${fin?"":" · behaviour not added yet"}`:"Not logged yet"}</div></div>
+      return `<button class="entry rowbtn" data-open="${k}" style="grid-template-columns:${r?"30px ":""}1fr auto;align-items:center">${r?portraitHTML(r.sp,"s"):""}<div><div class="what">Spotting ${k+1}</div><div class="sub">GPS ${coordText(s)}</div><div class="sub">${r?`${esc(spLabel(r))}${fin?"":" · behaviour not added yet"}`:"Not logged yet"}</div></div>
       <span class="pill ${fin?"ok":""}">${fin?"Logged":r?"To finish":(k===ni?"Next":"To do")}</span></button>`; }).join("")}</div></div></div>`;
 }
 function logHTML(){
-  const s=trail.stops[view.i], r=logged[keyOf(s)], head=`<div><div class="eyebrow">Log your observation</div><h2 style="margin-bottom:2px">Spotting ${view.i+1}</h2></div>`,
+  const s=trail.stops[view.i], r=logged[keyOf(s)], head=`<div><div class="eyebrow">Log your observation</div><h2 style="margin-bottom:2px">Spotting ${view.i+1}</h2><div class="gpsco">GPS <span>${coordText(s)}</span></div></div>`,
     back=`<button class="tut-skip" id="trailBack" style="align-self:flex-start">Back to the trail</button>`;
   // species already chosen: it is final
   if(r){ const locked=`<div class="plate">${portraitHTML(r.sp,"m")}<div><div class="eyebrow">Your species answer · final</div><h3>${esc(spLabel(r))}</h3></div></div>`;
@@ -581,6 +583,7 @@ function logHTML(){
     <div class="eyebrow">Which species did you see?</div><div class="spgrid">${spBtns}</div>
     ${back}</div>`;
 }
+const coordText=s=>`${(+s.lat).toFixed(5)}, ${(+s.lon).toFixed(5)}`;
 const nowHM=()=>{ const d=new Date(); return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
 // one tap fixes the species. A non-primate is finished straight away; a primate opens the behaviour box.
 function chooseSpecies(sp){ const s=trail.stops[view.i], k=keyOf(s); if(logged[k]) return; if(sp!=="NP" && !SPECIES[sp]) return;
