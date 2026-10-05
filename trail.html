@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Field Trail</title>
+<title>PrimaGo: Field Trail</title>
 <!-- © 2026 Kayla Kolff. All rights reserved. -->
 <meta name="author" content="Kayla Kolff">
 <meta name="copyright" content="© 2026 Kayla Kolff. All rights reserved.">
@@ -227,6 +227,8 @@ html,body{height:auto;min-height:100%}
 .spgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .spbtn{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:600;text-align:left;cursor:pointer}
 .spbtn.on{border-color:var(--tape);box-shadow:inset 0 0 0 1px var(--tape)}
+.spbtn.wide{grid-column:1/-1}
+.fld textarea{font:inherit;font-size:15px;font-weight:400;padding:9px 10px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);min-width:0}
 .fld textarea{font:inherit;font-size:15px;padding:9px 10px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);font-weight:400}
 .tv-pt{display:grid;grid-template-columns:auto minmax(170px,210px) 1fr auto;gap:10px;align-items:center}
 .tv-pt input.coord{font-family:var(--mono);font-size:13px}
@@ -241,7 +243,7 @@ html,body{height:auto;min-height:100%}
 <body style="margin:0">
 
 <div class="page">
-  <header class="tp-head"><div class="brand"><span class="tape" aria-hidden="true"></span>Field trail</div></header>
+  <header class="tp-head"><div class="brand">PrimaGo</div><span class="sub">Field trail</span></header>
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" id="tab-trail" aria-selected="true">Trail</button>
     <button class="tab" role="tab" id="tab-results" aria-selected="false">My results <span id="resCount"></span></button>
@@ -430,8 +432,13 @@ Object.assign(PORTRAIT_ART,{
   JA: snakeArt({body:"#6E5A40",mid:"#8E7652",mark:"#3E3024",spot:"#B8A27A",head:"#8C7452",stripe:"#5A4632",cheek:"#3E3024",eye:"#B89A52",horns:false,top:64,
        headPath:"M60 70 C68 58 132 58 140 70 C146 82 132 106 112 120 C106 125 94 125 88 120 C68 106 54 82 60 70 Z"}),
 });
-const HAZ_NAME={EL:{name:"Forest elephant"},VP:{name:"Rhinoceros viper"},JA:{name:"Jararaca"}};
-const ART_BG={EL:"#E4E0D6",VP:"#E4E2D2",JA:"#E1E6C8"};
+const HAZ_NAME={EL:{name:"Forest elephant"},VP:{name:"Rhinoceros viper"},JA:{name:"Jararaca"},NP:{name:"Non-primate"}};
+const ART_BG={EL:"#E4E0D6",VP:"#E4E2D2",JA:"#E1E6C8",NP:"#DDE5D8"};
+// non-primate: a paw print
+PORTRAIT_ART.NP=`<g fill="#55665A"><path d="M100 96 C128 96 150 122 148 146 C146 164 128 168 100 162 C72 168 54 164 52 146 C50 122 72 96 100 96 Z"/><ellipse cx="50" cy="92" rx="15" ry="20" transform="rotate(-24 50 92)"/><ellipse cx="82" cy="62" rx="15" ry="21" transform="rotate(-8 82 62)"/><ellipse cx="118" cy="62" rx="15" ry="21" transform="rotate(8 118 62)"/><ellipse cx="150" cy="92" rx="15" ry="20" transform="rotate(24 150 92)"/></g>`;
+// name shown for a logged spotting: a primate species, or "Non-primate" with the animal the student typed
+const spLabel=r=>r.sp==="NP"?"Non-primate":SPECIES[r.sp].name;
+const whatLabel=r=>r.sp==="NP"?(r.animal||""):`${r.code} · ${r.name}`;
 function portraitSVG(sp){ const id="shd-"+sp;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><radialGradient id="${id}" cx="38%" cy="30%" r="78%"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient><radialGradient id="${id}b" cx="50%" cy="35%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><rect width="200" height="200" fill="${ART_BG[sp]||SPECIES[sp].bg}"/><rect width="200" height="200" fill="url(#${id}b)"/>${PORTRAIT_ART[sp].replace(/url\(#SHD\)/g,`url(#${id})`).replace(/HCLIP/g,"hc-"+sp)}</svg>`; }
 const portraitHTML=(sp,cls)=>`<div class="portrait ${cls||""}" role="img" aria-label="${(SPECIES[sp]||HAZ_NAME[sp]||{name:sp}).name} illustration">${portraitSVG(sp)}</div>`;
@@ -447,7 +454,7 @@ Object.entries(TABS).forEach(([k,id])=>document.getElementById(id).addEventListe
 function resultRows(){ return trail?trail.stops.map((s,i)=>({i,r:logged[keyOf(s)]})).filter(x=>x.r):[]; }
 function resultsHTML(){
   const rows=resultRows(), n=rows.length;
-  const list=n?`<div class="entries">${rows.map(({i,r})=>`<div class="entry" style="grid-template-columns:30px 1fr auto;align-items:start">${portraitHTML(r.sp,"s")}<div><div class="what">Spotting ${i+1} · ${esc(SPECIES[r.sp].name)}</div><div class="sub">${esc(r.code)} · ${esc(r.name)}${r.time?` · ${r.time}`:""}</div>${r.notes?`<div class="small" style="margin-top:2px">${esc(r.notes)}</div>`:""}</div><button class="btn ghost small" data-open="${i}">Edit</button></div>`).join("")}</div>`
+  const list=n?`<div class="entries">${rows.map(({i,r})=>`<div class="entry" style="grid-template-columns:30px 1fr auto;align-items:start">${portraitHTML(r.sp,"s")}<div><div class="what">Spotting ${i+1} · ${esc(spLabel(r))}</div><div class="sub">${esc(whatLabel(r))}${r.time?` · ${r.time}`:""}</div>${r.notes?`<div class="small" style="margin-top:2px">${esc(r.notes)}</div>`:""}</div><button class="btn ghost small" data-open="${i}">Edit</button></div>`).join("")}</div>`
     : `<div class="empty">No spottings logged yet. Walk to your first spotting point to begin.</div>`;
   return `<div class="stack"><div><div class="eyebrow">My results</div><h2>${trail?esc(trail.name):"Field trail"}</h2></div>
     <div class="stats"><div class="stat"><b>${n}${trail?` / ${trail.stops.length}`:""}</b>Spottings logged</div></div>
@@ -455,7 +462,7 @@ function resultsHTML(){
     ${n?`<button class="btn" id="copyRes" style="align-self:flex-start">Copy my results</button><p class="small muted" style="margin:0">Paste them into your assignment or send them to your teacher.</p>`:""}</div>`;
 }
 function resultsText(){ const rows=resultRows();
-  return `${trail?trail.name:"Field trail"}: ${rows.length} of ${trail?trail.stops.length:0} spottings logged\n`+rows.map(({i,r})=>`Spotting ${i+1}: ${SPECIES[r.sp].name}, ${r.code} ${r.name}${r.notes?` (notes: ${r.notes})`:""}`).join("\n"); }
+  return `${trail?trail.name:"Field trail"}: ${rows.length} of ${trail?trail.stops.length:0} spottings logged\n`+rows.map(({i,r})=>`Spotting ${i+1}: ${spLabel(r)}, ${r.sp==="NP"?r.animal:r.code+" "+r.name}${r.notes?` (notes: ${r.notes})`:""}`).join("\n"); }
 function renderPane(){
   Object.entries(TABS).forEach(([k,id])=>document.getElementById(id).setAttribute("aria-selected",String(k===tab)));
   const n=resultRows().length; document.getElementById("resCount").textContent=n?`(${n})`:"";
@@ -468,7 +475,7 @@ pane.addEventListener("input",e=>{ if(e.target.id==="obsNotes" && view) view.not
 pane.addEventListener("click",e=>{
   const t=e.target.closest("button"); if(!t) return;
   if(t.dataset.open!==undefined) openSpotting(+t.dataset.open);
-  else if(t.dataset.sp && view){ if(view.sp!==t.dataset.sp){ view.sp=t.dataset.sp; view.codes=[]; } lastField=""; renderPane(); }
+  else if(t.dataset.sp && view){ if(view.sp!==t.dataset.sp){ const n=document.getElementById("obsNotes"); if(n) view.notes=n.value; view.sp=t.dataset.sp; view.codes=[]; } lastField=""; renderPane(); }
   else if(t.dataset.code && view){ const n=document.getElementById("obsNotes"); if(n) view.notes=n.value; const c=t.dataset.code, k=view.codes.indexOf(c); if(k>=0) view.codes.splice(k,1); else view.codes.push(c); lastField=""; renderPane(); }
   else if(t.id==="saveLog") saveSpotting();
   else if(t.id==="trailBack"){ view=null; lastField=""; renderPane(); }
@@ -514,7 +521,7 @@ function gpsBearing(a,b){ const t=Math.PI/180, y=Math.sin((b.lon-a.lon)*t)*Math.
 const DIRS=["north","north-east","east","south-east","south","south-west","west","north-west"];
 function fmtDist(m){ return m>=1000?(m/1000).toFixed(1)+" km":Math.round(m/5)*5+" m"; }
 function openSpotting(i){ const s=trail.stops[i], r=logged[keyOf(s)];
-  view={i, sp:r?r.sp:null, codes:r?(r.codes||[r.code]).slice():[], notes:r?r.notes:""}; tab="trail"; lastField=""; renderPane(); window.scrollTo(0,0); }
+  view={i, sp:r?r.sp:null, codes:r?(r.codes||[r.code]).slice():[], animal:r?(r.animal||""):"", notes:r?r.notes:""}; tab="trail"; lastField=""; renderPane(); window.scrollTo(0,0); }
 function trailHTML(){
   if(!trail) return `<div class="stack"><div><div class="eyebrow">Field trail</div><h2>No trail set up yet</h2>
     <p class="muted">Your teacher hasn't added the spotting points yet. When they do, this page will guide you to each one with GPS.</p></div>
@@ -539,26 +546,36 @@ function trailHTML(){
     <p class="muted small" style="margin:0">Walk to each spotting point, watch the video from the QR code there, and record the behaviour you observe.</p></div>
     ${nextCard}
     <div><div class="eyebrow" style="margin-bottom:4px">All spottings</div><div class="entries">${stops.map((s,k)=>{ const r=logged[keyOf(s)];
-      return `<button class="entry rowbtn" data-open="${k}" style="grid-template-columns:${r?"30px ":""}1fr auto;align-items:center">${r?portraitHTML(r.sp,"s"):""}<div><div class="what">Spotting ${k+1}</div><div class="sub">${r?`${esc(SPECIES[r.sp].name)} · ${esc(r.code)} ${esc(r.name)}`:(s.hint?esc(s.hint):"Not logged yet")}</div></div>
+      return `<button class="entry rowbtn" data-open="${k}" style="grid-template-columns:${r?"30px ":""}1fr auto;align-items:center">${r?portraitHTML(r.sp,"s"):""}<div><div class="what">Spotting ${k+1}</div><div class="sub">${r?`${esc(spLabel(r))} · ${esc(r.sp==="NP"?r.animal:r.code+" "+r.name)}`:(s.hint?esc(s.hint):"Not logged yet")}</div></div>
       <span class="pill ${r?"ok":""}">${r?"Logged":(k===ni?"Next":"To do")}</span></button>`; }).join("")}</div></div></div>`;
 }
 function logHTML(){
   const s=trail.stops[view.i], r=logged[keyOf(s)];
-  const spBtns=SP_KEYS.map(k=>`<button class="spbtn ${view.sp===k?"on":""}" data-sp="${k}" aria-pressed="${view.sp===k}">${portraitHTML(k,"s")}<span>${esc(SPECIES[k].name)}</span></button>`).join("");
-  const behs=view.sp?`<div class="eyebrow">2. Which behaviours did you observe? Tick all that you saw</div><div class="opts">${tBehs(view.sp).map(b=>{ const on=view.codes.includes(b.code); return `<button class="opt ${on?"right":""}" data-code="${b.code}" aria-pressed="${on}"><code>${on?"✓ ":""}${b.code}</code><span><b>${esc(b.name)}</b><br><span class="muted small">${esc(b.def)}</span></span></button>`; }).join("")}</div>`:"";
-  const fin=view.sp&&view.codes.length?`<label class="fld">3. Notes (optional)<textarea id="obsNotes" rows="3" placeholder="e.g. two adults, one juvenile watching">${esc(view.notes||"")}</textarea></label>
+  const spBtns=SP_KEYS.map(k=>`<button class="spbtn ${view.sp===k?"on":""}" data-sp="${k}" aria-pressed="${view.sp===k}">${portraitHTML(k,"s")}<span>${esc(SPECIES[k].name)}</span></button>`).join("")
+    + `<button class="spbtn wide ${view.sp==="NP"?"on":""}" data-sp="NP" aria-pressed="${view.sp==="NP"}">${portraitHTML("NP","s")}<span>Non-primate <span class="muted" style="font-weight:400">(any other animal)</span></span></button>`;
+  const isNP=view.sp==="NP";
+  const behs=isNP?`<label class="fld">2. What kind of animal was it?<input id="npAnimal" maxlength="60" autocomplete="off" value="${esc(view.animal||"")}" placeholder="e.g. forest elephant, hornbill, duiker"></label>`
+    :view.sp?`<div class="eyebrow">2. Which behaviours did you observe? Tick all that you saw</div><div class="opts">${tBehs(view.sp).map(b=>{ const on=view.codes.includes(b.code); return `<button class="opt ${on?"right":""}" data-code="${b.code}" aria-pressed="${on}"><code>${on?"✓ ":""}${b.code}</code><span><b>${esc(b.name)}</b><br><span class="muted small">${esc(b.def)}</span></span></button>`; }).join("")}</div>`:"";
+  const fin=isNP||(view.sp&&view.codes.length)?`<label class="fld">${isNP?"3. What was it doing? (optional)":"3. Notes (optional)"}<textarea id="obsNotes" rows="3" placeholder="${isNP?"e.g. feeding on fallen fruit near the stream":"e.g. two adults, one juvenile watching"}">${esc(view.notes||"")}</textarea></label>
     <button class="btn" id="saveLog" style="align-self:flex-start">${r?"Update this spotting":"Save spotting"}</button>`:"";
   return `<div class="stack">
     <div><div class="eyebrow">Log your observation</div><h2 style="margin-bottom:2px">Spotting ${view.i+1}</h2>${s.hint?`<p class="small muted" style="margin:0">${esc(s.hint)}</p>`:""}</div>
     <p class="muted small" style="margin:0">Scan the QR code at this spotting point to watch the video. Observe it like a focal sample, then record what you saw.</p>
-    <div class="eyebrow">1. Which species did you see?</div><div class="spgrid">${spBtns}</div>
+    <div class="eyebrow">1. Which animal did you see?</div><div class="spgrid">${spBtns}</div>
     ${behs}${fin}
     <button class="tut-skip" id="trailBack" style="align-self:flex-start">Back to the trail</button></div>`;
 }
 function saveSpotting(){
+  if(view.sp==="NP"){ const a=document.getElementById("npAnimal"), animal=a?a.value.trim():""; const n0=document.getElementById("obsNotes"); view.notes=n0?n0.value.trim():""; view.animal=animal;
+    if(!animal){ toast("Type which animal you saw, then save."); if(a) a.focus(); return; }
+    const s0=trail.stops[view.i], d0=new Date();
+    logged[keyOf(s0)]={i:view.i, sp:"NP", animal, codes:[], code:"", name:animal, notes:view.notes, time:`${String(d0.getHours()).padStart(2,"0")}:${String(d0.getMinutes()).padStart(2,"0")}`};
+    return afterSave(); }
   const s=trail.stops[view.i], bs=tBehs(view.sp).filter(x=>view.codes.includes(x.code)), b={code:bs.map(x=>x.code).join(" + "), name:bs.map(x=>x.name).join(" + ")}, d=new Date();
   const n=document.getElementById("obsNotes"); view.notes=n?n.value.trim():"";
   logged[keyOf(s)]={i:view.i, sp:view.sp, codes:bs.map(x=>x.code), code:b.code, name:b.name, notes:view.notes, time:`${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`};
+  afterSave(); }
+function afterSave(){
   saveLogged(); const i=view.i; view=null; lastField=""; renderPane(); window.scrollTo(0,0);
   const left=trail.stops.filter(x=>!logged[keyOf(x)]).length;
   toast(left?`Spotting ${i+1} saved. Head to the next spotting point!`:"All spottings logged: trail complete! See My results.",3500);
