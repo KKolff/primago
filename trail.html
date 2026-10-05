@@ -443,7 +443,7 @@ const HAZ_NAME={EL:{name:"Forest elephant"},VP:{name:"Rhinoceros viper"},JA:{nam
 const ART_BG={EL:"#E4E0D6",VP:"#E4E2D2",JA:"#E1E6C8",NP:"#DDE5D8"};
 // non-primate: a paw print
 PORTRAIT_ART.NP=`<g fill="#55665A"><path d="M100 96 C128 96 150 122 148 146 C146 164 128 168 100 162 C72 168 54 164 52 146 C50 122 72 96 100 96 Z"/><ellipse cx="50" cy="92" rx="15" ry="20" transform="rotate(-24 50 92)"/><ellipse cx="82" cy="62" rx="15" ry="21" transform="rotate(-8 82 62)"/><ellipse cx="118" cy="62" rx="15" ry="21" transform="rotate(8 118 62)"/><ellipse cx="150" cy="92" rx="15" ry="20" transform="rotate(24 150 92)"/></g>`;
-// name shown for a logged spotting: a primate species, or "Non-primate" with the animal the student typed
+// name shown for a logged observation: a primate species, or "Non-primate" with the animal the student typed
 const spLabel=r=>r.sp==="NP"?"Non-primate":SPECIES[r.sp].name;
 const whatLabel=r=>r.sp==="NP"?(r.animal||""):`${r.code} · ${r.name}`;
 function portraitSVG(sp){ const id="shd-"+sp;
@@ -467,21 +467,21 @@ function scoreNow(){ const rows=resultRows().map(x=>verdict(x.i,x.r)).filter(v=>
 function resultsHTML(){
   const rows=resultRows(), n=rows.filter(x=>isDone(x.r)).length, sc=scoreNow(), allIn=trail && rows.length===trail.stops.length;
   const list=rows.length?`<div class="entries">${rows.map(({i,r})=>{ const v=verdict(i,r), txt=recText(r);
-      return `<div class="entry" style="grid-template-columns:30px 1fr auto;align-items:start">${portraitHTML(r.sp,"s")}<div><div class="what">Spotting ${i+1} · ${esc(spLabel(r))}</div>
+      return `<div class="entry" style="grid-template-columns:30px 1fr auto;align-items:start">${portraitHTML(r.sp,"s")}<div><div class="what">Observation ${i+1} · ${esc(spLabel(r))}</div>
         ${r.sp==="NP"?"":`<div class="small" style="margin-top:2px">${txt?esc(txt):`<span class="muted">Behaviour not added yet</span>`}</div>`}
         ${v===false&&allIn?`<div class="sub" style="margin-top:2px">Correct species: ${esc(KEY_SPECIES[trail.stops[i].species])}</div>`:""}
         ${r.sp==="NP"?"":`<button class="tut-skip" data-open="${i}" style="padding-left:0">${txt?"Edit behaviour":"Add behaviour"}</button>`}</div>
         ${v===null?`<span class="pill">Not scored</span>`:`<span class="pill ${v?"ok":"fix"}">${v?"Correct":"Not correct"}</span>`}</div>`; }).join("")}</div>`
-    : `<div class="empty">No spottings logged yet. Walk to your first GPS point to begin.</div>`;
+    : `<div class="empty">No observations logged yet. Walk to any GPS point to begin.</div>`;
   return `<div class="stack"><div><h2>My results</h2></div>
-    <div class="stats"><div class="stat"><b>${n}${trail?` / ${trail.stops.length}`:""}</b>Spottings logged</div>${sc.of?`<div class="stat"><b>${sc.right} / ${sc.of}</b>Species correct</div>`:""}</div>
-    ${rows.length&&sc.of&&!allIn?`<p class="small muted" style="margin:0">The correct species for any you missed are shown once you've logged every spotting.</p>`:""}
+    <div class="stats"><div class="stat"><b>${n}${trail?` / ${trail.stops.length}`:""}</b>Observations logged</div>${sc.of?`<div class="stat"><b>${sc.right} / ${sc.of}</b>Species correct</div>`:""}</div>
+    ${rows.length&&sc.of&&!allIn?`<p class="small muted" style="margin:0">The correct species for any you missed are shown once you have logged every observation.</p>`:""}
     ${list}
     ${rows.length?`<button class="btn" id="copyRes" style="align-self:flex-start">Copy my results</button><p class="small muted" style="margin:0">Paste them into your assignment or send them to your teacher.</p>`:""}</div>`;
 }
 function resultsText(){ const rows=resultRows(), sc=scoreNow();
-  return `Field trail: ${rows.filter(x=>isDone(x.r)).length} of ${trail?trail.stops.length:0} spottings logged\n`+(sc.of?`Species identified correctly: ${sc.right} of ${sc.of}\n`:"")
-    +rows.map(({i,r})=>{ const v=verdict(i,r), txt=recText(r); return `Spotting ${i+1}: ${spLabel(r)}${v===null?"":v?" (correct)":" (not correct)"}${r.sp==="NP"?"":`. Behaviour: ${txt||"not added"}`}`; }).join("\n"); }
+  return `Field trail: ${rows.filter(x=>isDone(x.r)).length} of ${trail?trail.stops.length:0} observations logged\n`+(sc.of?`Species identified correctly: ${sc.right} of ${sc.of}\n`:"")
+    +rows.map(({i,r})=>{ const v=verdict(i,r), txt=recText(r); return `Observation ${i+1}: ${spLabel(r)}${v===null?"":v?" (correct)":" (not correct)"}${r.sp==="NP"?"":`. Behaviour: ${txt||"not added"}`}`; }).join("\n"); }
 function renderPane(){
   Object.entries(TABS).forEach(([k,id])=>document.getElementById(id).setAttribute("aria-selected",String(k===tab)));
   const n=resultRows().length; document.getElementById("resCount").textContent=n?`(${n})`:"";
@@ -493,12 +493,12 @@ function renderPane(){
 pane.addEventListener("input",e=>{ if(e.target.id==="obsText" && view) view.text=e.target.value; });
 pane.addEventListener("click",e=>{
   const t=e.target.closest("button"); if(!t) return;
-  if(t.dataset.open!==undefined) openSpotting(+t.dataset.open);
+  if(t.dataset.open!==undefined) openObservation(+t.dataset.open);
   else if(t.dataset.sp && view) chooseSpecies(t.dataset.sp);
-  else if(t.id==="saveLog") saveSpotting();
+  else if(t.id==="saveLog") saveObservation();
   else if(t.id==="trailBack"){ view=null; lastField=""; renderPane(); }
   else if(t.id==="gpsStart") startGps();
-  else if(t.id==="copyRes"){ const txt=resultsText(); navigator.clipboard.writeText(txt).then(()=>toast("Results copied. Paste them into your assignment.")).catch(()=>toast("Copying isn't allowed here.")); }
+  else if(t.id==="copyRes"){ const txt=resultsText(); navigator.clipboard.writeText(txt).then(()=>toast("Results copied. Paste them into your assignment.")).catch(()=>toast("Copying is not allowed here.")); }
 });
 
 /* ---------- Field trail: GPS points only; QR codes and videos are separate ---------- */
@@ -525,13 +525,17 @@ async function loadTrail(){
 }
 // --- GPS ---
 let geo=null, geoWatch=null, geoMsg="";
+// never redraw the screen while a student is typing their behaviour answer
+const gpsCanRefresh=()=>tab==="trail" && (!view || !logged[keyOf(trail.stops[view.i])]);
 function startGps(){
-  if(!("geolocation" in navigator)){ geoMsg="This device can't share its location."; lastField=""; renderPane(); return; }
+  if(!("geolocation" in navigator)){ geoMsg="This device cannot share its location."; lastField=""; renderPane(); return; }
   geoMsg="Looking for a GPS signal…"; lastField=""; renderPane();
-  try{ geoWatch=navigator.geolocation.watchPosition(p=>{ geo={lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy}; geoMsg=""; if(tab==="trail" && !view) renderPane(); },
-    err=>{ geoWatch=null; geoMsg = err&&err.code===1 ? "Location access was blocked. Allow location for this site in your browser settings, then try again." : "Couldn't get a GPS signal. Move to an open spot and try again."; lastField=""; renderPane(); },
+  try{ geoWatch=navigator.geolocation.watchPosition(p=>{ geo={lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy}; geoMsg=""; if(gpsCanRefresh()) renderPane(); },
+    err=>{ if(err&&err.code===1){ try{ navigator.geolocation.clearWatch(geoWatch); }catch(e){} geoWatch=null; geoMsg="Location access was blocked. Allow location for this site in your browser settings, then try again."; }
+      else geoMsg="No GPS signal right now. Move to an open spot. It keeps trying."; // a lost signal is temporary, so the watch stays on
+      if(gpsCanRefresh()){ lastField=""; renderPane(); } },
     {enableHighAccuracy:true, maximumAge:3000, timeout:25000}); }
-  catch(e){ geoMsg="GPS isn't available here."; lastField=""; renderPane(); }
+  catch(e){ geoMsg="GPS is not available here."; lastField=""; renderPane(); }
 }
 function gpsDist(a,b){ const R=6371000, t=Math.PI/180, dLa=(b.lat-a.lat)*t, dLo=(b.lon-a.lon)*t;
   const h=Math.sin(dLa/2)**2+Math.cos(a.lat*t)*Math.cos(b.lat*t)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
@@ -539,47 +543,42 @@ function gpsBearing(a,b){ const t=Math.PI/180, y=Math.sin((b.lon-a.lon)*t)*Math.
   x=Math.cos(a.lat*t)*Math.sin(b.lat*t)-Math.sin(a.lat*t)*Math.cos(b.lat*t)*Math.cos((b.lon-a.lon)*t); return (Math.atan2(y,x)/t+360)%360; }
 const DIRS=["north","north-east","east","south-east","south","south-west","west","north-west"];
 function fmtDist(m){ return m>=1000?(m/1000).toFixed(1)+" km":Math.round(m/5)*5+" m"; }
-function openSpotting(i){ const r=logged[keyOf(trail.stops[i])]; view={i, text:r?recText(r):""}; tab="trail"; lastField=""; renderPane(); window.scrollTo(0,0); }
+function openObservation(i){ const r=logged[keyOf(trail.stops[i])]; view={i, text:r?recText(r):""}; tab="trail"; lastField=""; renderPane(); window.scrollTo(0,0); }
 function trailHTML(){
   if(!trail) return `<div class="stack"><div><h2>No trail set up yet</h2>
-    <p class="muted">Your teacher hasn't added the GPS points yet. When they do, this page will guide you to each one.</p></div>
+    <p class="muted">Your teacher has not added the GPS points yet. When they do, this page will guide you to each one.</p></div>
     <p class="small muted" style="margin:0">Teachers: add <code>#teacher</code> to the end of this page's link to set them up.</p></div>`;
   if(view) return logHTML();
-  const stops=trail.stops, done=stops.filter(s=>isDone(logged[keyOf(s)])).length, ni=stops.findIndex(s=>!isDone(logged[keyOf(s)])), next=stops[ni];
-  const prev = trailSrc==="preview" ? `<div class="warn"><div><b>Preview mode</b><br><span class="small">You're seeing the points from the teacher screen on this device only. Students will see the version in trail.json.</span></div></div>` : "";
-  let nextCard="";
-  if(next){ const started=!!logged[keyOf(next)];
-    let where=`<p class="muted small" style="margin:0">Turn on GPS guidance to see how far away it is.</p>`;
-    if(geo){ const d=gpsDist(geo,next), b=gpsBearing(geo,next);
-      where=`<div class="gpsbig"><span class="arrow" style="transform:rotate(${Math.round(b)}deg)" aria-hidden="true">↑</span><div><b>${fmtDist(d)}</b> to the ${DIRS[Math.round(b/45)%8]}<br><span class="muted small">GPS accuracy about ${Math.round(geo.acc)} m${d<25?" · you're there! Look for the QR code":""}</span></div></div>`; }
-    nextCard=`<div class="plate" style="grid-template-columns:1fr"><div><div class="eyebrow">Next GPS point · ${stops.length} in total</div><h3>Spotting ${ni+1}</h3><div class="gpsco">GPS <span>${coordText(next)}</span></div></div></div>
-      ${where}
-      ${geoWatch===null?`<button class="btn" id="gpsStart" style="align-self:flex-start">Start GPS guidance</button>`:""}
-      ${geoMsg?`<p class="small" style="margin:0;color:var(--bad)">${esc(geoMsg)}</p>`:""}
-      <button class="btn" data-open="${ni}" style="align-self:flex-start">${started?`Finish spotting ${ni+1}`:`Log spotting ${ni+1}`}</button>`;
-  } else nextCard=`<div class="note"><b>Trail complete!</b> You've logged all ${stops.length} spottings. See your score in the My results tab.</div>`;
+  const stops=trail.stops, done=stops.filter(s=>isDone(logged[keyOf(s)])).length, left=stops.map((s,k)=>({s,k})).filter(x=>!isDone(logged[keyOf(x.s)]));
+  const prev = trailSrc==="preview" ? `<div class="warn"><div><b>Preview mode</b><br><span class="small">You are seeing the points from the teacher screen on this device only. Students will see the version in trail.json.</span></div></div>` : "";
+  const guide=left.length?"":`<div class="note"><b>Trail complete!</b> You have logged all ${stops.length} observations. See your score in the My results tab.</div>`;
   return `<div class="stack">${prev}
-    <div><h2>${done} of ${stops.length} spottings logged</h2>
-    <ol class="howto small"><li>Walk to the GPS point shown below.</li><li>Find the QR code there.</li><li>Scan it and watch the video.</li><li>Record the species and, if it is a primate, the behaviour you observe.</li></ol></div>
-    ${nextCard}
-    <div><div class="eyebrow" style="margin-bottom:4px">All spottings</div><div class="entries">${stops.map((s,k)=>{ const r=logged[keyOf(s)], fin=isDone(r);
-      return `<button class="entry rowbtn" data-open="${k}" style="grid-template-columns:${r?"30px ":""}1fr auto;align-items:center">${r?portraitHTML(r.sp,"s"):""}<div><div class="what">Spotting ${k+1}</div><div class="sub">GPS ${coordText(s)}</div><div class="sub">${r?`${esc(spLabel(r))}${fin?"":" · behaviour not added yet"}`:"Not logged yet"}</div></div>
-      <span class="pill ${fin?"ok":""}">${fin?"Logged":r?"To finish":(k===ni?"Next":"To do")}</span></button>`; }).join("")}</div></div></div>`;
+    <div><h2>${done} of ${stops.length} observations logged</h2>
+    <ol class="howto small"><li>Tap an observation below to see its GPS point, then walk there. You can do them in any order.</li><li>Find the QR code there.</li><li>Scan it and watch the video.</li><li>Record the species and, if it is a primate, the behaviour you observe.</li></ol></div>
+    ${guide}
+    <div><div class="eyebrow" style="margin-bottom:4px">All observations · tap one to open it</div><div class="entries">${stops.map((s,k)=>{ const r=logged[keyOf(s)], fin=isDone(r);
+      return `<button class="entry rowbtn" data-open="${k}" style="grid-template-columns:${r?"30px ":""}1fr auto;align-items:center">${r?portraitHTML(r.sp,"s"):""}<div><div class="what">Observation ${k+1}</div><div class="sub">${r?`${esc(spLabel(r))}${fin?"":" · behaviour not added yet"}`:"Not logged yet"}</div></div>
+      <span class="pill ${fin?"ok":""}">${fin?"Logged":r?"To finish":"To do"}</span></button>`; }).join("")}</div></div></div>`;
 }
 function logHTML(){
-  const s=trail.stops[view.i], r=logged[keyOf(s)], head=`<div><div class="eyebrow">Log your observation</div><h2 style="margin-bottom:2px">Spotting ${view.i+1}</h2><div class="gpsco">GPS <span>${coordText(s)}</span></div></div>`,
+  const s=trail.stops[view.i], r=logged[keyOf(s)], head=`<div><div class="eyebrow">Log your observation</div><h2 style="margin-bottom:2px">Observation ${view.i+1}</h2><div class="gpsco">GPS <span>${coordText(s)}</span></div></div>`,
     back=`<button class="tut-skip" id="trailBack" style="align-self:flex-start">Back to the trail</button>`;
   // species already chosen: it is final
   if(r){ const locked=`<div class="plate">${portraitHTML(r.sp,"m")}<div><div class="eyebrow">Your species answer · final</div><h3>${esc(spLabel(r))}</h3></div></div>`;
-    if(r.sp==="NP") return `<div class="stack">${head}${locked}<p class="muted small" style="margin:0">Non-primates don't need a behaviour. This spotting is logged.</p>${back}</div>`;
+    if(r.sp==="NP") return `<div class="stack">${head}${locked}<p class="muted small" style="margin:0">Non-primates do not need a behaviour. This observation is logged.</p>${back}</div>`;
     return `<div class="stack">${head}${locked}
       <label class="fld" for="obsText">What behaviour did you observe?<textarea id="obsText" rows="4" maxlength="600" placeholder="Describe what the ${esc(spLabel(r).toLowerCase())} was doing">${esc(view.text||"")}</textarea></label>
       <button class="btn" id="saveLog" style="align-self:flex-start">${isDone(r)?"Update behaviour":"Save behaviour"}</button>${back}</div>`; }
   const spBtns=SP_KEYS.map(k=>`<button class="spbtn" data-sp="${k}">${portraitHTML(k,"s")}<span>${esc(SPECIES[k].name)}</span></button>`).join("")
     + `<button class="spbtn wide" data-sp="NP">${portraitHTML("NP","s")}<span>Non-primate <span class="muted" style="font-weight:400">(any other animal)</span></span></button>`;
+  let where="";
+  if(geo){ const d=gpsDist(geo,s), b=gpsBearing(geo,s);
+    where=`<div class="gpsbig"><span class="arrow" style="transform:rotate(${Math.round(b)}deg)" aria-hidden="true">↑</span><div><b>${fmtDist(d)}</b> to the ${DIRS[Math.round(b/45)%8]}<br><span class="muted small">GPS accuracy about ${Math.round(geo.acc)} m${d<25?" · you are there! Look for the QR code":""}</span></div></div>`; }
+  where+=`${geoWatch===null?`<button class="btn ghost" id="gpsStart" style="align-self:flex-start">Start GPS guidance</button>`:""}${geoMsg?`<p class="small" style="margin:0;color:var(--bad)">${esc(geoMsg)}</p>`:""}`;
   return `<div class="stack">${head}
+    ${where}
     <p class="muted small" style="margin:0">Find the QR code at this GPS point, scan it and watch the video. Then record the species and, if it is a primate, the behaviour you observe.</p>
-    <div class="warn" role="note"><div><b>Choose carefully.</b> Once you tap a species, your answer is final and you can't change it.</div></div>
+    <div class="warn" role="note"><div><b>Choose carefully.</b> Once you tap a species, your answer is final and you cannot change it.</div></div>
     <div class="eyebrow">Which species did you see?</div><div class="spgrid">${spBtns}</div>
     ${back}</div>`;
 }
@@ -590,13 +589,13 @@ function chooseSpecies(sp){ const s=trail.stops[view.i], k=keyOf(s); if(logged[k
   logged[k]={i:view.i, sp, text:"", done:sp==="NP", time:nowHM()}; saveLogged();
   if(sp==="NP"){ afterSave(); return; }
   view.text=""; lastField=""; renderPane(); const t=document.getElementById("obsText"); if(t) t.focus(); }
-function saveSpotting(){ const s=trail.stops[view.i], r=logged[keyOf(s)], t=document.getElementById("obsText"); if(!r||r.sp==="NP") return;
+function saveObservation(){ const s=trail.stops[view.i], r=logged[keyOf(s)], t=document.getElementById("obsText"); if(!r||r.sp==="NP") return;
   const text=t?t.value.trim():""; if(!text){ toast("Type the behaviour you observed, then save."); if(t) t.focus(); return; }
   r.text=text; r.done=true; r.time=nowHM(); delete r.code; delete r.codes; delete r.name; delete r.notes; saveLogged(); afterSave(); }
 function afterSave(){
   const i=view.i; view=null; lastField=""; renderPane(); window.scrollTo(0,0);
   const left=trail.stops.filter(x=>!isDone(logged[keyOf(x)])).length;
-  toast(left?`Spotting ${i+1} logged. Head to the next GPS point!`:"All spottings logged: trail complete! See your score in My results.",3500);
+  toast(left?`Observation ${i+1} logged. Head to another GPS point!`:"All observations logged: trail complete! See your score in My results.",3500);
 }
 
 /* ---------- Teacher setup: just the GPS points ---------- */
@@ -619,10 +618,10 @@ function renderTeacher(){
   tv.innerHTML=`<div class="tv-inner">
     <div class="eyebrow">Teacher only</div>
     <ol class="tv-steps small">
-      <li>Paste your GPS points below, one per line (latitude, longitude). They become Spotting 1, 2, 3… in that order.</li>
+      <li>Paste your GPS points below, one per line (latitude, longitude). They become Observation 1, 2, 3… in that order.</li>
       <li>Tap <b>Download trail.json</b> and upload it to your GitHub repository, in the same folder as <code>trail.html</code>.</li>
       <li>Put your own QR codes (linking to the videos) up at each GPS point.</li>
-      <li>For each point, set the correct species. Students are scored against it, so a point left as "Not set" isn't scored. The QR note is only for you.</li></ol>
+      <li>For each point, set the correct species. Students are scored against it, so a point left as "Not set" is not scored. The QR note is only for you.</li></ol>
     <div class="tv-stop"><h3 style="margin:0 0 4px">GPS points</h3>
       <p class="small muted" style="margin:0 0 8px">One point per line: latitude, then longitude. You can copy coordinates straight from Google Maps or a spreadsheet. To fix a point later, edit its coordinates in the list below.</p>
       <label class="sr" for="gpsList">GPS points</label>
@@ -630,9 +629,9 @@ function renderTeacher(){
       <div class="tv-row"><button class="btn" data-a="bulk">Add these points</button><button class="btn ghost" data-a="bulkReplace">Replace all points with this list</button><button class="btn ghost" data-a="here">Add my current location</button></div>
       <p id="bulkMsg" class="small" style="margin:6px 0 0" hidden></p></div>
     ${ok?`<div><div class="eyebrow" style="margin-bottom:4px">Your GPS points (${d.stops.length})</div><div class="entries">${d.stops.map((s,i)=>`<div class="entry tv-pt">
-      <b>Spotting ${i+1}</b>
-      <label class="sr" for="coord${i}">GPS for spotting ${i+1}</label><input id="coord${i}" class="coord" data-s="${i}" data-k="coord" inputmode="decimal" value="${(+s.lat).toFixed(6)}, ${(+s.lon).toFixed(6)}" title="Latitude, longitude">
-      <span class="tv-mini"><button class="btn ghost" data-a="up" data-i="${i}" ${i===0?"disabled":""} aria-label="Move spotting ${i+1} up">↑</button><button class="btn ghost" data-a="down" data-i="${i}" ${i===d.stops.length-1?"disabled":""} aria-label="Move spotting ${i+1} down">↓</button><button class="btn ghost" data-a="del" data-i="${i}" aria-label="Remove spotting ${i+1}">✕</button></span>
+      <b>Observation ${i+1}</b>
+      <label class="sr" for="coord${i}">GPS for observation ${i+1}</label><input id="coord${i}" class="coord" data-s="${i}" data-k="coord" inputmode="decimal" value="${(+s.lat).toFixed(6)}, ${(+s.lon).toFixed(6)}" title="Latitude, longitude">
+      <span class="tv-mini"><button class="btn ghost" data-a="up" data-i="${i}" ${i===0?"disabled":""} aria-label="Move observation ${i+1} up">↑</button><button class="btn ghost" data-a="down" data-i="${i}" ${i===d.stops.length-1?"disabled":""} aria-label="Move observation ${i+1} down">↓</button><button class="btn ghost" data-a="del" data-i="${i}" aria-label="Remove observation ${i+1}">✕</button></span>
       <div class="tv-key"><label class="fld" for="qr${i}">QR code at this point<input id="qr${i}" data-s="${i}" data-k="qr" maxlength="120" autocomplete="off" value="${esc(s.qr||"")}" placeholder="e.g. QR 3, chimpanzee grooming video"></label>
         <label class="fld" for="sp${i}">Correct species<select id="sp${i}" data-s="${i}" data-k="species"><option value="">Not set</option>${Object.entries(KEY_SPECIES).map(([k,n])=>`<option value="${k}" ${s.species===k?"selected":""}>${n}</option>`).join("")}</select></label></div></div>`).join("")}</div></div>`:""}
     <div class="tv-actions">
@@ -660,21 +659,21 @@ function initTeacher(){
     else if(t.dataset.k==="coord"){ const r=parseGpsList(t.value).out[0]; t.classList.toggle("bad",!r);
       if(r){ const st=tDraft.stops[+t.dataset.s]; st.lat=r.lat; st.lon=r.lon; saveDraft(); const ta=document.getElementById("trailText"); if(ta) ta.value=trailFileText(); } } });
   tv.addEventListener("focusout",e=>{ const t=e.target; if(t.dataset&&t.dataset.k==="coord"){ const st=tDraft.stops[+t.dataset.s]; if(!st) return;
-    if(t.classList.contains("bad")) toast(`Spotting ${+t.dataset.s+1}: that isn't a valid latitude, longitude, so the previous point was kept.`,4500);
+    if(t.classList.contains("bad")) toast(`Observation ${+t.dataset.s+1}: that is not a valid latitude, longitude, so the previous point was kept.`,4500);
     t.value=`${(+st.lat).toFixed(6)}, ${(+st.lon).toFixed(6)}`; t.classList.remove("bad"); } });
   tv.addEventListener("change",e=>{ const t=e.target;
     if(t.dataset.k==="species"){ tDraft.stops[+t.dataset.s].species=t.value; saveDraft(); const ta=document.getElementById("trailText"); if(ta) ta.value=trailFileText(); }
-    if(t.id==="trailFile" && t.files[0]) t.files[0].text().then(txt=>{ const j=cleanTrail(JSON.parse(txt)); if(!j) throw 0; tDraft=j; saveDraft(); renderTeacher(); toast("Trail loaded."); }).catch(()=>toast("That file isn't a valid trail.json.")); });
+    if(t.id==="trailFile" && t.files[0]) t.files[0].text().then(txt=>{ const j=cleanTrail(JSON.parse(txt)); if(!j) throw 0; tDraft=j; saveDraft(); renderTeacher(); toast("Trail loaded."); }).catch(()=>toast("That file is not a valid trail.json.")); });
   tv.addEventListener("click",e=>{ const b=e.target.closest("button[data-a]"); if(!b) return; const a=b.dataset.a, i=+b.dataset.i, d=tDraft;
     if(a==="bulk") bulkAdd(false);
     else if(a==="bulkReplace"){ if(!d.stops.length||b.dataset.sure) bulkAdd(true); else { b.dataset.sure="1"; b.textContent=`Tap again to replace all ${d.stops.length} points`; } }
-    else if(a==="del"){ if(b.dataset.sure){ d.stops.splice(i,1); saveDraft(); renderTeacher(); } else { b.dataset.sure="1"; b.textContent="Remove?"; b.setAttribute("aria-label",`Tap again to remove spotting ${i+1}`); } }
+    else if(a==="del"){ if(b.dataset.sure){ d.stops.splice(i,1); saveDraft(); renderTeacher(); } else { b.dataset.sure="1"; b.textContent="Remove?"; b.setAttribute("aria-label",`Tap again to remove observation ${i+1}`); } }
     else if(a==="up"&&i>0){ [d.stops[i-1],d.stops[i]]=[d.stops[i],d.stops[i-1]]; saveDraft(); renderTeacher(); }
     else if(a==="down"&&i<d.stops.length-1){ [d.stops[i+1],d.stops[i]]=[d.stops[i],d.stops[i+1]]; saveDraft(); renderTeacher(); }
-    else if(a==="here"){ if(!("geolocation" in navigator)){ toast("This device can't share its location."); return; }
+    else if(a==="here"){ if(!("geolocation" in navigator)){ toast("This device cannot share its location."); return; }
       b.textContent="Finding you…"; b.disabled=true;
-      navigator.geolocation.getCurrentPosition(p=>{ d.stops.push({lat:+p.coords.latitude.toFixed(6), lon:+p.coords.longitude.toFixed(6)}); saveDraft(); renderTeacher(); toast(`Spotting ${d.stops.length} added (accurate to about ${Math.round(p.coords.accuracy)} m).`); },
-        err=>{ renderTeacher(); toast(err&&err.code===1?"Location access is blocked. Allow it for this site, or paste the coordinates.":"Couldn't get your location. Try again outside, or paste the coordinates.",5000); },
+      navigator.geolocation.getCurrentPosition(p=>{ d.stops.push({lat:+p.coords.latitude.toFixed(6), lon:+p.coords.longitude.toFixed(6)}); saveDraft(); renderTeacher(); toast(`Observation ${d.stops.length} added (accurate to about ${Math.round(p.coords.accuracy)} m).`); },
+        err=>{ renderTeacher(); toast(err&&err.code===1?"Location access is blocked. Allow it for this site, or paste the coordinates.":"Could not get your location. Try again outside, or paste the coordinates.",5000); },
         {enableHighAccuracy:true, timeout:20000, maximumAge:0}); }
     else if(a==="dl"){ const u=URL.createObjectURL(new Blob([trailFileText()],{type:"application/json"}));
       const l=document.createElement("a"); l.href=u; l.download="trail.json"; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(u),2000); toast("trail.json downloaded. Upload it to GitHub next to trail.html."); }
