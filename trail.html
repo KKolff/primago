@@ -231,6 +231,8 @@ html,body{height:auto;min-height:100%}
 .fld textarea{font:inherit;font-size:15px;font-weight:400;padding:9px 10px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);min-width:0}
 .fld textarea{font:inherit;font-size:15px;padding:9px 10px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);font-weight:400}
 .tv-pt{display:grid;grid-template-columns:auto minmax(170px,1fr) auto;gap:10px;align-items:center}
+.handin{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.handin .fld input{max-width:340px}
 .gpsco{font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums;margin-top:4px}
 .gpsco span{user-select:all}
 .howto{margin:8px 0 0;padding-left:20px;display:grid;gap:3px;color:var(--muted)}
@@ -441,8 +443,8 @@ Object.assign(PORTRAIT_ART,{
 });
 const HAZ_NAME={EL:{name:"Forest elephant"},VP:{name:"Rhinoceros viper"},JA:{name:"Jararaca"},NP:{name:"Non-primate"}};
 const ART_BG={EL:"#E4E0D6",VP:"#E4E2D2",JA:"#E1E6C8",NP:"#DDE5D8"};
-// non-primate: a paw print
-PORTRAIT_ART.NP=`<g fill="#55665A"><path d="M100 96 C128 96 150 122 148 146 C146 164 128 168 100 162 C72 168 54 164 52 146 C50 122 72 96 100 96 Z"/><ellipse cx="50" cy="92" rx="15" ry="20" transform="rotate(-24 50 92)"/><ellipse cx="82" cy="62" rx="15" ry="21" transform="rotate(-8 82 62)"/><ellipse cx="118" cy="62" rx="15" ry="21" transform="rotate(8 118 62)"/><ellipse cx="150" cy="92" rx="15" ry="20" transform="rotate(24 150 92)"/></g>`;
+// non-primate: a primate hand print with a diagonal line across it
+PORTRAIT_ART.NP=`<g><g fill="#55665A" transform="translate(102 106) rotate(20) scale(1.1) translate(-100 -110)"><path d="M70 110 C69 99 82 95 100 95 C118 95 131 99 130 110 C132 130 126 152 113 160 C104 165 94 165 86 160 C73 152 68 130 70 110 Z"/><ellipse cx="75" cy="64" rx="8.2" ry="24" transform="rotate(-12 75 64)"/><ellipse cx="93" cy="54" rx="8.4" ry="28" transform="rotate(-4 93 54)"/><ellipse cx="111" cy="55" rx="8.4" ry="27" transform="rotate(5 111 55)"/><ellipse cx="128" cy="69" rx="7.8" ry="21" transform="rotate(15 128 69)"/><ellipse cx="51" cy="116" rx="8.6" ry="19" transform="rotate(-52 51 116)"/></g><path d="M44 44 L158 158" stroke="#DDE5D8" stroke-width="18" stroke-linecap="round"/><path d="M44 44 L158 158" stroke="#B23A2A" stroke-width="9" stroke-linecap="round"/></g>`;
 // name shown for a logged observation: a primate species, or "Non-primate" with the animal the student typed
 const spLabel=r=>r.sp==="NP"?"Non-primate":SPECIES[r.sp].name;
 const whatLabel=r=>r.sp==="NP"?(r.animal||""):`${r.code} · ${r.name}`;
@@ -477,11 +479,67 @@ function resultsHTML(){
     <div class="stats"><div class="stat"><b>${n}${trail?` / ${trail.stops.length}`:""}</b>Observations logged</div>${sc.of?`<div class="stat"><b>${sc.right} / ${sc.of}</b>Species correct</div>`:""}</div>
     ${rows.length&&sc.of&&!allIn?`<p class="small muted" style="margin:0">The correct species for any you missed are shown once you have logged every observation.</p>`:""}
     ${list}
-    ${rows.length?`<button class="btn" id="copyRes" style="align-self:flex-start">Copy my results</button><p class="small muted" style="margin:0">Paste them into your assignment or send them to your teacher.</p>`:""}</div>`;
+    ${rows.length?`<div class="handin"><label class="fld" for="stuName">Your name<input id="stuName" maxlength="60" autocomplete="name" value="${esc(stuName)}" placeholder="First and last name"></label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="dlRes">Download my results (PDF)</button>${canSendFile()?`<button class="btn ghost" id="sendRes">Send the file</button>`:""}</div></div>`:""}</div>`;
 }
-function resultsText(){ const rows=resultRows(), sc=scoreNow();
-  return `Field trail: ${rows.filter(x=>isDone(x.r)).length} of ${trail?trail.stops.length:0} observations logged\n`+(sc.of?`Species identified correctly: ${sc.right} of ${sc.of}\n`:"")
-    +rows.map(({i,r})=>{ const v=verdict(i,r), txt=recText(r); return `Observation ${i+1}: ${spLabel(r)}${v===null?"":v?" (correct)":" (not correct)"}${r.sp==="NP"?"":`. Behaviour: ${txt||"not added"}`}`; }).join("\n"); }
+// ---- hand-in: a PDF of the results, written directly by this page (no library) ----
+let stuName=""; try{ stuName=localStorage.getItem("transect-trail-name")||""; }catch(e){}
+// Helvetica character widths for the characters " " to "~", in thousandths of the font size
+const HELV=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+const PDF_EXTRA={0x20AC:0x80,0x201A:0x82,0x201E:0x84,0x2026:0x85,0x2018:0x91,0x2019:0x92,0x201C:0x93,0x201D:0x94,0x2022:0x95,0x2013:0x96,0x2014:0x97};
+const pdfByte=ch=>{ const c=ch.codePointAt(0); if(c>=32&&c<=126) return c; if(c>=0xA0&&c<=0xFF) return c; return PDF_EXTRA[c]||63; }; // anything Helvetica cannot show becomes "?"
+const pdfHex=t=>Array.from(t).map(ch=>pdfByte(ch).toString(16).padStart(2,"0")).join("");
+const pdfWidth=(t,size,bold)=>Array.from(t).reduce((w,ch)=>{ const b=pdfByte(ch); return w+(b<=126?HELV[b-32]:556); },0)/1000*size*(bold?1.07:1);
+function pdfWrap(text,maxW,size,bold){ const out=[];
+  // emoji and similar symbols have no shape in the PDF font, so they are left out
+  const plain=Array.from(String(text)).filter(ch=>{ const c=ch.codePointAt(0); return !(c===0x200D||c===0xFE0F||c>=0x1F000||(c>=0x2600&&c<=0x27BF)); }).join("");
+  plain.replace(/\t/g," ").split(/\r?\n/).forEach(par=>{ let line="";
+    par.trim().split(/ +/).forEach(word=>{ while(pdfWidth(word,size,bold)>maxW){ let n=1; while(n<word.length && pdfWidth(word.slice(0,n+1),size,bold)<=maxW) n++; if(line){ out.push(line); line=""; } out.push(word.slice(0,n)); word=word.slice(n); }
+      const t=line?line+" "+word:word; if(pdfWidth(t,size,bold)<=maxW) line=t; else { out.push(line); line=word; } });
+    out.push(line); });
+  return out; }
+function resultsPdf(){ const rows=resultRows(), sc=scoreNow(), nLogged=rows.filter(x=>isDone(x.r)).length, allIn=rows.length===trail.stops.length;
+  const W=595, H=842, M=54, B=40, INK="0.11 0.15 0.13", MUTED="0.36 0.42 0.37", GOOD="0.18 0.49 0.31", BAD="0.70 0.23 0.16", pages=[]; let ops=[], y=H-M;
+  const newPage=()=>{ pages.push(ops.join("\n")); ops=[]; y=H-M; };
+  const text=(t,size,bold,color,x)=>{ y-=size*1.4; ops.push(`BT /${bold?"F2":"F1"} ${size} Tf ${color||INK} rg ${x||M} ${y.toFixed(1)} Td <${pdfHex(t)}> Tj ET`); };
+  const para=(t,size,bold,color,x)=>pdfWrap(t,W-M-(x||M),size,bold).forEach(l=>{ if(y-size*1.4<B) newPage(); text(l,size,bold,color,x); });
+  const rule=()=>{ y-=9; ops.push(`0.80 0.84 0.78 RG 0.7 w ${M} ${y.toFixed(1)} m ${W-M} ${y.toFixed(1)} l S`); y-=3; };
+  const d=new Date(), date=`${d.getDate()} ${["January","February","March","April","May","June","July","August","September","October","November","December"][d.getMonth()]} ${d.getFullYear()}, ${nowHM()}`;
+  text("Field trail results",20,true); y-=4;
+  para(`Name: ${stuName.trim()}`,12); para(`Date: ${date}`,12);
+  para(`Observations logged: ${nLogged} of ${trail.stops.length}`,12); if(sc.of) para(`Species correct: ${sc.right} of ${sc.of}`,12);
+  rows.forEach(({i,r})=>{
+    const v=verdict(i,r), head=`Observation ${i+1}: ${spLabel(r)}`;
+    // keep an observation together on one page whenever it fits
+    const need=12+13*1.4+10*1.4+(v===false&&allIn?10*1.4:0)+(r.sp!=="NP"?pdfWrap(`Behaviour: ${recText(r)||"not added"}`,W-2*M,11.5).length*11.5*1.4:0)+12;
+    if(y-need<B && need<H-M-B) newPage(); rule();
+    text(head,13,true);
+    if(v!==null) ops.push(`BT /F2 11 Tf ${v?GOOD:BAD} rg ${(M+pdfWidth(head,13,true)+10).toFixed(1)} ${y.toFixed(1)} Td <${pdfHex(v?"Correct":"Not correct")}> Tj ET`);
+    para(`GPS ${coordText(trail.stops[i])}${r.time?"  \u00b7  Logged at "+r.time:""}`,10,false,MUTED);
+    if(v===false&&allIn) para(`Correct species: ${KEY_SPECIES[trail.stops[i].species]}`,10,false,MUTED);
+    if(r.sp!=="NP") para(`Behaviour: ${recText(r)||"not added"}`,11.5); });
+  rule(); pages.push(ops.join("\n"));
+  // assemble the file: catalog, page list, two fonts, then a page and its content for each page
+  const objs=[]; const add=body=>{ objs.push(body); return objs.length; };
+  add("<< /Type /Catalog /Pages 2 0 R >>"); add(""); // 2 = page list, filled in below
+  add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
+  add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
+  const kids=pages.map(c=>{ const content=add(`<< /Length ${c.length} >>\nstream\n${c}\nendstream`);
+    return add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${content} 0 R >>`); });
+  objs[1]=`<< /Type /Pages /Kids [${kids.map(k=>k+" 0 R").join(" ")}] /Count ${kids.length} >>`;
+  let out="%PDF-1.4\n"; const offs=[];
+  objs.forEach((b,n)=>{ offs.push(out.length); out+=`${n+1} 0 obj\n${b}\nendobj\n`; });
+  const xref=out.length;
+  out+=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+offs.map(o=>String(o).padStart(10,"0")+" 00000 n \n").join("")+`trailer\n<< /Size ${objs.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return out; }
+function pdfName(){ const n=stuName.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); return `field-trail-results${n?"-"+n:""}.pdf`; }
+function canSendFile(){ try{ const f=new File(["x"],"x.pdf",{type:"application/pdf"}); return !!(navigator.canShare && navigator.canShare({files:[f]})); }catch(e){ return false; } }
+function needName(){ if(stuName.trim()) return false; toast("Type your name first, so your teacher knows whose results these are."); const n=document.getElementById("stuName"); if(n) n.focus(); return true; }
+function downloadResults(){ if(needName()) return;
+  try{ const u=URL.createObjectURL(new Blob([resultsPdf()],{type:"application/pdf"})), a=document.createElement("a"); a.href=u; a.download=pdfName(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),3000); }
+  catch(e){ toast("The file could not be saved on this device. Show this screen to your teacher instead.",6000); } }
+function sendResults(){ if(needName()) return; let f=null; try{ f=new File([resultsPdf()],pdfName(),{type:"application/pdf"}); }catch(e){} if(!f){ downloadResults(); return; }
+  navigator.share({files:[f], title:"Field trail results"}).catch(err=>{ if(!err||err.name!=="AbortError") downloadResults(); }); }
 function renderPane(){
   Object.entries(TABS).forEach(([k,id])=>document.getElementById(id).setAttribute("aria-selected",String(k===tab)));
   const n=resultRows().length; document.getElementById("resCount").textContent=n?`(${n})`:"";
@@ -490,7 +548,8 @@ function renderPane(){
   const html = tab==="results"?resultsHTML():trailHTML();
   if(html!==lastField){ pane.innerHTML=html; lastField=html; }
 }
-pane.addEventListener("input",e=>{ if(e.target.id==="obsText" && view) view.text=e.target.value; });
+pane.addEventListener("input",e=>{ if(e.target.id==="obsText" && view) view.text=e.target.value;
+  else if(e.target.id==="stuName"){ stuName=e.target.value; try{ localStorage.setItem("transect-trail-name",stuName); }catch(err){} } });
 pane.addEventListener("click",e=>{
   const t=e.target.closest("button"); if(!t) return;
   if(t.dataset.open!==undefined) openObservation(+t.dataset.open);
@@ -498,7 +557,8 @@ pane.addEventListener("click",e=>{
   else if(t.id==="saveLog") saveObservation();
   else if(t.id==="trailBack"){ view=null; lastField=""; renderPane(); }
   else if(t.id==="gpsStart") startGps();
-  else if(t.id==="copyRes"){ const txt=resultsText(); navigator.clipboard.writeText(txt).then(()=>toast("Results copied. Paste them into your assignment.")).catch(()=>toast("Copying is not allowed here.")); }
+  else if(t.id==="dlRes") downloadResults();
+  else if(t.id==="sendRes") sendResults();
 });
 
 /* ---------- Field trail: GPS points only; QR codes and videos are separate ---------- */
@@ -515,12 +575,15 @@ const keyOf=s=>`${(+s.lat).toFixed(5)},${(+s.lon).toFixed(5)}`;
 let trail=null, trailSrc="none", view=null; // view: {i, sp, code, notes}
 let logged={}; try{ logged=JSON.parse(localStorage.getItem("transect-trail-log")||"{}")||{}; }catch(e){}
 function saveLogged(){ try{ localStorage.setItem("transect-trail-log",JSON.stringify(logged)); }catch(e){} }
+// the trail built into this page, used whenever no trail.json can be loaded next to it
+const BUILTIN_TRAIL={"stops":[{"lat":52.28195,"lon":8.027,"qr":"QR code 1: Mangabey","species":"CA"},{"lat":52.28194,"lon":8.02763,"qr":"QR code 2: Non primate","species":"NP"},{"lat":52.2818,"lon":8.02746,"qr":"QR code 3: Non primate","species":"NP"},{"lat":52.28187,"lon":8.02827,"qr":"QR code 4: Chimpanzee","species":"PT"},{"lat":52.2819,"lon":8.02837,"qr":"QR code 5: Non primate","species":"NP"},{"lat":52.280787,"lon":8.029571,"qr":"QR code 6: Mangabey","species":"CA"},{"lat":52.281257,"lon":8.028661,"qr":"QR code 7: Non primate","species":"NP"},{"lat":52.28117,"lon":8.0279,"qr":"QR code 8: Chimpanzee","species":"PT"},{"lat":52.28142,"lon":8.02784,"qr":"QR code 9: Marmoset","species":"CJ"},{"lat":52.28148,"lon":8.02688,"qr":"QR code 10: Marmoset","species":"CJ"}]};
 async function loadTrail(){
   let draft=null;
   try{ if(localStorage.getItem("transect-trail-preview")==="on") draft=cleanTrail(JSON.parse(localStorage.getItem("transect-trail-draft")||"null")); }catch(e){}
   if(draft){ trail=draft; trailSrc="preview"; }
   else { trail=null; trailSrc="none";
-    try{ const r=await fetch("trail.json",{cache:"no-store"}); if(r.ok){ const j=cleanTrail(await r.json()); if(j){ trail=j; trailSrc="file"; } } }catch(e){} }
+    try{ const r=await fetch("trail.json",{cache:"no-store"}); if(r.ok){ const j=cleanTrail(await r.json()); if(j){ trail=j; trailSrc="file"; } } }catch(e){}
+    if(!trail){ const j=cleanTrail(BUILTIN_TRAIL); if(j){ trail=j; trailSrc="file"; } } }
   lastField=""; renderPane();
 }
 // --- GPS ---
